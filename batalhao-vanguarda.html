@@ -1,0 +1,2145 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Batalhão Vanguarda</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07090a;
+      --bg-surface: #0e1318;
+      --bg-card: #141c23;
+      --bg-card2: #1a2530;
+      --primary: #1b3a4b;
+      --accent: #c9a227;
+      --accent-dim: #8a6f1a;
+      --accent-red: #8b2020;
+      --success: #1e6b3e;
+      --text: #ddd8cc;
+      --text-muted: #7a8090;
+      --border: #1e2c38;
+      --border-accent: #2a3c4e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text);
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 17px;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* Scanline texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    h1, h2, h3, h4, h5, h6, .nav-link, .btn, label { font-family: 'Oswald', sans-serif; }
+
+    /* ── NAVBAR ── */
+    #navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      background: rgba(7,9,10,0.97);
+      border-bottom: 1px solid var(--border-accent);
+      backdrop-filter: blur(10px);
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+
+    .brand-emblem {
+      width: 40px; height: 40px;
+      background: var(--accent);
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      flex-shrink: 0;
+    }
+
+    .brand-text {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      letter-spacing: 0.12em;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .brand-text span {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.4rem 0.75rem;
+      border-radius: 2px;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--accent);
+      background: rgba(201,162,39,0.08);
+    }
+
+    .nav-auth-btn {
+      background: none;
+      border: 1px solid var(--accent-dim);
+      color: var(--accent);
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.4rem 1rem;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .nav-auth-btn:hover { background: rgba(201,162,39,0.12); }
+
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.4rem;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; position: absolute; top: 64px; left: 0; right: 0; background: var(--bg-surface); flex-direction: column; padding: 1rem; border-bottom: 1px solid var(--border-accent); gap: 0; }
+      .nav-links.open { display: flex; }
+      .hamburger { display: block; }
+      #navbar { flex-wrap: wrap; }
+    }
+
+    /* ── SECTIONS ── */
+    .section { display: none; padding-top: 64px; min-height: 100vh; }
+    .section.active { display: block; }
+
+    /* ── HOME ── */
+    .hero {
+      min-height: calc(100vh - 64px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      padding: 4rem 1.5rem;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(27,58,75,0.5) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 50% 100%, rgba(201,162,39,0.08) 0%, transparent 70%),
+        var(--bg-dark);
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9a227' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      opacity: 0.5;
+    }
+
+    .hero-emblem {
+      width: 100px; height: 100px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      margin-bottom: 2rem;
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { filter: drop-shadow(0 0 10px rgba(201,162,39,0.4)); }
+      50% { filter: drop-shadow(0 0 25px rgba(201,162,39,0.7)); }
+    }
+
+    .hero-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(0.8rem, 2vw, 1rem);
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-desc {
+      max-width: 600px;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+
+    .btn-gold {
+      background: var(--accent);
+      color: #000;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.65rem 1.75rem;
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-gold:hover { background: #e0b530; transform: translateY(-2px); }
+
+    .btn-outline-gold {
+      background: transparent;
+      color: var(--accent);
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.65rem 1.75rem;
+      border: 1px solid var(--accent-dim);
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-outline-gold:hover { background: rgba(201,162,39,0.1); transform: translateY(-2px); }
+
+    /* Stats */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border-accent);
+      margin: 4rem 0;
+    }
+
+    .stat-item {
+      background: var(--bg-surface);
+      padding: 2rem 1.5rem;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: 'Oswald', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+    }
+
+    /* ── SECTION HEADER ── */
+    .section-header {
+      padding: 4rem 1.5rem 2rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3rem;
+    }
+
+    .section-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .section-divider {
+      width: 60px; height: 3px;
+      background: var(--accent);
+      margin: 1rem auto 0;
+    }
+
+    /* ── CARDS ── */
+    .card-vg {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .card-vg:hover { border-color: var(--accent-dim); transform: translateY(-4px); }
+
+    /* ── MEMBERS ── */
+    .member-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      text-align: center;
+      border-radius: 4px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .member-card:hover { border-color: var(--accent-dim); transform: translateY(-4px); }
+
+    .member-avatar {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--accent-dim);
+      margin: 0 auto 1rem;
+      display: block;
+      background: var(--primary);
+    }
+
+    .avatar-placeholder {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--bg-card2));
+      border: 3px solid var(--accent-dim);
+      margin: 0 auto 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .member-name {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .member-role {
+      font-size: 0.8rem;
+      font-family: 'Oswald', sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .member-badge {
+      display: inline-block;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.6rem;
+      border: 1px solid var(--success);
+      color: #5cc78a;
+      border-radius: 2px;
+    }
+
+    /* ── BLOG ── */
+    .blog-card {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      margin-bottom: 1.5rem;
+    }
+    .blog-card:hover { border-color: var(--accent-dim); }
+
+    @media (max-width: 576px) {
+      .blog-card { grid-template-columns: 1fr; }
+    }
+
+    .blog-card-img {
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-dim);
+      font-size: 2.5rem;
+      min-height: 150px;
+    }
+
+    .blog-card-img img { width: 100%; height: 100%; object-fit: cover; }
+
+    .blog-card-body { padding: 1.5rem; }
+
+    .blog-meta {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .blog-meta span { color: var(--accent); margin-right: 1rem; }
+
+    .blog-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+      line-height: 1.3;
+    }
+
+    .blog-excerpt { color: var(--text-muted); font-size: 0.95rem; }
+
+    /* ── GALLERY ── */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .gallery-item {
+      aspect-ratio: 1;
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .gallery-item:hover { transform: scale(1.02); border-color: var(--accent-dim); }
+    .gallery-item:hover .gallery-overlay { opacity: 1; }
+
+    .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+
+    .gallery-placeholder {
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: var(--text-muted);
+      font-size: 2rem;
+      gap: 0.5rem;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+    }
+
+    .gallery-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(7,9,10,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+      color: var(--accent);
+      font-size: 1.5rem;
+    }
+
+    /* Lightbox */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.95);
+      z-index: 9000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img { max-width: 90vw; max-height: 80vh; object-fit: contain; border: 1px solid var(--border-accent); }
+    .lightbox-close { position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none; color: var(--text); font-size: 2rem; cursor: pointer; }
+    .lightbox-caption { color: var(--text-muted); margin-top: 1rem; font-family: 'Oswald', sans-serif; letter-spacing: 0.1em; }
+
+    /* ── CALENDAR ── */
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding: 0 0.5rem;
+    }
+
+    .calendar-month {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .cal-nav { background: none; border: 1px solid var(--border-accent); color: var(--text-muted); padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 2px; transition: color 0.2s, border-color 0.2s; }
+    .cal-nav:hover { color: var(--accent); border-color: var(--accent-dim); }
+
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border-accent); }
+
+    .cal-day-name {
+      background: var(--bg-card2);
+      text-align: center;
+      padding: 0.5rem;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .cal-day {
+      background: var(--bg-card);
+      min-height: 80px;
+      padding: 0.5rem;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .cal-day:hover { background: var(--bg-card2); }
+    .cal-day.other-month { opacity: 0.3; }
+    .cal-day.today { border-top: 2px solid var(--accent); }
+
+    .cal-day-num {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .cal-day.today .cal-day-num { color: var(--accent); font-weight: 600; }
+
+    .cal-event {
+      background: var(--accent);
+      color: #000;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.05em;
+      padding: 0.15rem 0.3rem;
+      border-radius: 2px;
+      margin-top: 0.25rem;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    /* Events list */
+    .event-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      padding: 1rem 1.25rem;
+      border-radius: 0 4px 4px 0;
+      margin-bottom: 0.75rem;
+    }
+
+    .event-date {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .event-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    /* ── FORMS ── */
+    .form-vg {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 2.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-accent);
+      border-radius: 4px;
+    }
+
+    .form-vg h2 {
+      font-size: 1.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+
+    .form-vg .subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      font-family: 'Crimson Text', serif;
+    }
+
+    .form-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .form-control-vg {
+      width: 100%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-accent);
+      color: var(--text);
+      padding: 0.6rem 0.9rem;
+      border-radius: 2px;
+      font-family: 'Crimson Text', serif;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    .form-control-vg:focus { border-color: var(--accent-dim); }
+    .form-control-vg option { background: var(--bg-surface); }
+
+    .form-group { margin-bottom: 1.25rem; }
+
+    .divider-text {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-family: 'Oswald', sans-serif;
+      letter-spacing: 0.1em;
+      margin: 1.5rem 0;
+      position: relative;
+    }
+    .divider-text::before, .divider-text::after {
+      content: '';
+      position: absolute;
+      top: 50%; width: 40%;
+      height: 1px;
+      background: var(--border-accent);
+    }
+    .divider-text::before { left: 0; }
+    .divider-text::after { right: 0; }
+
+    /* Payment methods */
+    .payment-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin: 1rem 0; }
+
+    .payment-opt {
+      border: 1px solid var(--border-accent);
+      border-radius: 4px;
+      padding: 0.75rem 0.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: var(--bg-surface);
+    }
+    .payment-opt:hover, .payment-opt.selected { border-color: var(--accent); background: rgba(201,162,39,0.07); }
+
+    .payment-opt .pay-name {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: block;
+    }
+    .payment-opt .pay-op {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .mpesa { --pay-color: #e01f2e; }
+    .emola { --pay-color: #004f9f; }
+    .mkesh { --pay-color: #00843d; }
+    .payment-opt.selected { border-color: var(--pay-color, var(--accent)); }
+    .mpesa .pay-name { color: #e01f2e; }
+    .emola .pay-name { color: #4a9fd4; }
+    .mkesh .pay-name { color: #5cc78a; }
+
+    /* ── ALERTS ── */
+    .alert-vg {
+      padding: 0.75rem 1rem;
+      border-radius: 2px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 1.25rem;
+      display: none;
+    }
+    .alert-vg.show { display: block; }
+    .alert-success { background: rgba(30,107,62,0.2); border: 1px solid var(--success); color: #5cc78a; }
+    .alert-danger { background: rgba(139,32,32,0.2); border: 1px solid var(--accent-red); color: #e07070; }
+    .alert-info { background: rgba(27,58,75,0.4); border: 1px solid var(--border-accent); color: #7aafc8; }
+
+    /* ── ADMIN ── */
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .admin-table th {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-accent);
+      text-align: left;
+    }
+    .admin-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      vertical-align: middle;
+    }
+    .admin-table tr:hover td { background: var(--bg-card2); color: var(--text); }
+
+    .badge-pending { background: rgba(139,111,26,0.3); color: var(--accent); font-family: 'Oswald', sans-serif; font-size: 0.65rem; letter-spacing: 0.1em; padding: 0.2rem 0.5rem; border-radius: 2px; text-transform: uppercase; }
+    .badge-approved { background: rgba(30,107,62,0.3); color: #5cc78a; font-family: 'Oswald', sans-serif; font-size: 0.65rem; letter-spacing: 0.1em; padding: 0.2rem 0.5rem; border-radius: 2px; text-transform: uppercase; }
+    .badge-rejected { background: rgba(139,32,32,0.3); color: #e07070; font-family: 'Oswald', sans-serif; font-size: 0.65rem; letter-spacing: 0.1em; padding: 0.2rem 0.5rem; border-radius: 2px; text-transform: uppercase; }
+
+    .btn-sm-vg {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.6rem;
+      border-radius: 2px;
+      cursor: pointer;
+      border: 1px solid;
+      transition: background 0.2s;
+    }
+    .btn-approve { border-color: var(--success); color: #5cc78a; background: rgba(30,107,62,0.1); }
+    .btn-approve:hover { background: rgba(30,107,62,0.25); }
+    .btn-reject { border-color: var(--accent-red); color: #e07070; background: rgba(139,32,32,0.1); }
+    .btn-reject:hover { background: rgba(139,32,32,0.25); }
+    .btn-delete { border-color: var(--border-accent); color: var(--text-muted); background: transparent; }
+    .btn-delete:hover { background: var(--bg-card2); color: var(--text); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-accent);
+      padding: 3rem 1.5rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+    footer .foot-brand {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.2rem;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ── MODAL ── */
+    .modal-vg {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 5000;
+      display: none; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-vg.open { display: flex; }
+    .modal-body-vg {
+      background: var(--bg-card);
+      border: 1px solid var(--border-accent);
+      border-radius: 4px;
+      max-width: 680px; width: 100%;
+      max-height: 85vh; overflow-y: auto;
+      padding: 2rem;
+      position: relative;
+    }
+    .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer; }
+
+    /* ── TABS ── */
+    .tabs-vg { display: flex; border-bottom: 1px solid var(--border-accent); margin-bottom: 2rem; gap: 0; }
+    .tab-vg {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.75rem 1.25rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s;
+    }
+    .tab-vg.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── TOAST ── */
+    .toast-vg {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 9998;
+      background: var(--bg-card2);
+      border: 1px solid var(--border-accent);
+      border-left: 3px solid var(--accent);
+      padding: 0.9rem 1.25rem;
+      border-radius: 4px;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      max-width: 300px;
+      transform: translateX(120%);
+      transition: transform 0.3s;
+    }
+    .toast-vg.show { transform: translateX(0); }
+
+    /* ── UTILITIES ── */
+    .container-vg { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+    .text-gold { color: var(--accent); }
+    .text-muted-vg { color: var(--text-muted); }
+    .mt-2 { margin-top: 0.5rem; }
+    .mt-3 { margin-top: 1rem; }
+    .mt-4 { margin-top: 1.5rem; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    .mb-3 { margin-bottom: 1rem; }
+    .w-100 { width: 100%; }
+    .d-flex { display: flex; }
+    .justify-between { justify-content: space-between; }
+    .align-center { align-items: center; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-3 { gap: 1rem; }
+    .flex-wrap { flex-wrap: wrap; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; }
+    .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); font-family: 'Oswald', sans-serif; letter-spacing: 0.1em; }
+    .empty-state i { font-size: 3rem; margin-bottom: 1rem; color: var(--border-accent); }
+
+    /* SCROLL */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-dark); }
+    ::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent-dim); }
+  </style>
+</head>
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<nav id="navbar">
+  <a class="navbar-brand" href="#" onclick="navigate('home')">
+    <div class="brand-emblem"></div>
+    <div class="brand-text">
+      Batalhão Vanguarda
+      <span>Mais que um Batalhão</span>
+    </div>
+  </a>
+
+  <button class="hamburger" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#" onclick="navigate('home')" data-section="home">Início</a></li>
+    <li><a href="#" onclick="navigate('membros')" data-section="membros">Membros</a></li>
+    <li><a href="#" onclick="navigate('blog')" data-section="blog">Publicações</a></li>
+    <li><a href="#" onclick="navigate('galeria')" data-section="galeria">Galeria</a></li>
+    <li><a href="#" onclick="navigate('calendario')" data-section="calendario">Eventos</a></li>
+    <li id="navAdminLink" style="display:none"><a href="#" onclick="navigate('admin')" data-section="admin">Administração</a></li>
+  </ul>
+
+  <div style="display:flex; gap:0.5rem; align-items:center;">
+    <button class="nav-auth-btn" id="navAuthBtn" onclick="handleNavAuth()">
+      <i class="fas fa-sign-in-alt"></i> Entrar
+    </button>
+  </div>
+</nav>
+
+<!-- ══ TOAST ══ -->
+<div class="toast-vg" id="toast"></div>
+
+<!-- ══ LIGHTBOX ══ -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
+  <img id="lightboxImg" src="" alt="">
+  <div class="lightbox-caption" id="lightboxCaption"></div>
+</div>
+
+<!-- ══ MODAL: BLOG POST ══ -->
+<div class="modal-vg" id="postModal">
+  <div class="modal-body-vg">
+    <button class="modal-close" onclick="closeModal('postModal')"><i class="fas fa-times"></i></button>
+    <div id="postModalContent"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: ADD EVENT ══ -->
+<div class="modal-vg" id="eventModal">
+  <div class="modal-body-vg" style="max-width:460px">
+    <button class="modal-close" onclick="closeModal('eventModal')"><i class="fas fa-times"></i></button>
+    <h3 style="font-size:1.4rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1.5rem">Novo Evento</h3>
+    <div class="form-group">
+      <label class="form-label">Título do Evento</label>
+      <input type="text" class="form-control-vg" id="eventTitle" placeholder="Nome do evento">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Data</label>
+      <input type="date" class="form-control-vg" id="eventDate">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descrição</label>
+      <textarea class="form-control-vg" id="eventDesc" rows="3" placeholder="Detalhes do evento..."></textarea>
+    </div>
+    <button class="btn-gold w-100" onclick="saveEvent()">Guardar Evento</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: ADD POST ══ -->
+<div class="modal-vg" id="newPostModal">
+  <div class="modal-body-vg">
+    <button class="modal-close" onclick="closeModal('newPostModal')"><i class="fas fa-times"></i></button>
+    <h3 style="font-size:1.4rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1.5rem">Nova Publicação</h3>
+    <div class="form-group">
+      <label class="form-label">Título</label>
+      <input type="text" class="form-control-vg" id="postTitle" placeholder="Título da publicação">
+    </div>
+    <div class="form-group">
+      <label class="form-label">URL da Imagem (opcional)</label>
+      <input type="text" class="form-control-vg" id="postImage" placeholder="https://...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Conteúdo</label>
+      <textarea class="form-control-vg" id="postContent" rows="8" placeholder="Escreva o conteúdo da publicação..."></textarea>
+    </div>
+    <button class="btn-gold w-100" onclick="savePost()">Publicar</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: ADD MEMBER PHOTO ══ -->
+<div class="modal-vg" id="addGalleryModal">
+  <div class="modal-body-vg" style="max-width:460px">
+    <button class="modal-close" onclick="closeModal('addGalleryModal')"><i class="fas fa-times"></i></button>
+    <h3 style="font-size:1.4rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1.5rem">Adicionar Foto</h3>
+    <div class="form-group">
+      <label class="form-label">URL da Imagem</label>
+      <input type="text" class="form-control-vg" id="galleryUrl" placeholder="https://exemplo.com/foto.jpg">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Legenda</label>
+      <input type="text" class="form-control-vg" id="galleryCaption" placeholder="Descrição da foto">
+    </div>
+    <button class="btn-gold w-100" onclick="saveGalleryItem()">Adicionar</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SECÇÃO: HOME
+════════════════════════════════════ -->
+<section class="section active" id="home">
+  <div class="hero">
+    <div class="hero-emblem"></div>
+    <div class="hero-title">Batalhão Vanguarda</div>
+    <div class="hero-subtitle">&#9733; Unidade · Disciplina · Progresso &#9733;</div>
+    <p class="hero-desc">Uma família unida pelo compromisso, pela honra e pelo espírito de corpo. Juntos construímos o futuro, com os pés firmes no presente.</p>
+    <div class="hero-btns">
+      <button class="btn-gold" onclick="navigate('membros')"><i class="fas fa-users"></i> Conheça a Família Vanguarda</button>
+      <button class="btn-outline-gold" onclick="navigate('registo')"><i class="fas fa-user-plus"></i> Junte-se ao Batalhão</button>
+    </div>
+  </div>
+
+  <div class="container-vg">
+    <!-- Stats -->
+    <div class="stats-bar" id="homeStats"></div>
+
+    <!-- Latest posts -->
+    <div style="margin-top:3rem">
+      <div class="d-flex justify-between align-center mb-3 flex-wrap gap-2">
+        <div>
+          <div class="section-label">Últimas Publicações</div>
+          <h2 style="font-size:1.6rem;letter-spacing:.08em;text-transform:uppercase">Notícias do Batalhão</h2>
+        </div>
+        <button class="btn-outline-gold" onclick="navigate('blog')">Ver todas <i class="fas fa-arrow-right"></i></button>
+      </div>
+      <div id="homeLatestPosts"></div>
+    </div>
+
+    <!-- Upcoming events -->
+    <div style="margin-top:3rem">
+      <div class="d-flex justify-between align-center mb-3 flex-wrap gap-2">
+        <div>
+          <div class="section-label">Próximos Eventos</div>
+          <h2 style="font-size:1.6rem;letter-spacing:.08em;text-transform:uppercase">Calendário</h2>
+        </div>
+        <button class="btn-outline-gold" onclick="navigate('calendario')">Ver calendário <i class="fas fa-arrow-right"></i></button>
+      </div>
+      <div id="homeUpcomingEvents"></div>
+    </div>
+  </div>
+  <footer>
+    <div class="foot-brand">Batalhão Vanguarda</div>
+    <div>Unidade · Disciplina · Progresso</div>
+    <div style="margin-top:.5rem;font-size:.75rem">&copy; 2026 Batalhão Vanguarda. Todos os direitos reservados.</div>
+  </footer>
+</section>
+
+<!-- ════════════════════════════════════
+     SECÇÃO: MEMBROS
+════════════════════════════════════ -->
+<section class="section" id="membros">
+  <div class="section-header">
+    <div class="section-label">&#9650; Efectivo</div>
+    <h2 class="section-title">Membros do Batalhão</h2>
+    <div class="section-divider"></div>
+  </div>
+  <div class="container-vg">
+    <div id="membrosGrid" class="grid-3"></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     SECÇÃO: BLOG
+════════════════════════════════════ -->
+<section class="section" id="blog">
+  <div class="section-header">
+    <div class="section-label">&#9650; Comunicados & Notícias</div>
+    <h2 class="section-title">Publicações</h2>
+    <div class="section-divider"></div>
+  </div>
+  <div class="container-vg">
+    <div class="d-flex justify-between align-center mb-3 flex-wrap gap-2">
+      <span id="blogCount" class="text-muted-vg" style="font-family:'Oswald';font-size:.8rem;letter-spacing:.1em"></span>
+      <button class="btn-gold" id="btnNewPost" style="display:none" onclick="openModal('newPostModal')">
+        <i class="fas fa-plus"></i> Nova Publicação
+      </button>
+    </div>
+    <div id="blogList"></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     SECÇÃO: GALERIA
+════════════════════════════════════ -->
+<section class="section" id="galeria">
+  <div class="section-header">
+    <div class="section-label">&#9650; Memórias</div>
+    <h2 class="section-title">Galeria de Fotos</h2>
+    <div class="section-divider"></div>
+  </div>
+  <div class="container-vg">
+    <div class="d-flex justify-between align-center mb-3 flex-wrap gap-2">
+      <span class="text-muted-vg" style="font-family:'Oswald';font-size:.8rem;letter-spacing:.1em" id="galleryCount"></span>
+      <button class="btn-gold" id="btnAddPhoto" style="display:none" onclick="openModal('addGalleryModal')">
+        <i class="fas fa-plus"></i> Adicionar Foto
+      </button>
+    </div>
+    <div class="gallery-grid" id="galleryGrid"></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     SECÇÃO: CALENDÁRIO
+════════════════════════════════════ -->
+<section class="section" id="calendario">
+  <div class="section-header">
+    <div class="section-label">&#9650; Agenda</div>
+    <h2 class="section-title">Calendário de Eventos</h2>
+    <div class="section-divider"></div>
+  </div>
+  <div class="container-vg">
+    <div style="display:grid; grid-template-columns:1fr 300px; gap:2rem; align-items:start;">
+      <div>
+        <div class="calendar-header">
+          <button class="cal-nav" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+          <div class="calendar-month" id="calMonthLabel"></div>
+          <button class="cal-nav" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="calendar-grid" id="calGrid"></div>
+      </div>
+      <div>
+        <div class="d-flex justify-between align-center mb-3">
+          <div style="font-family:'Oswald';font-size:1rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text)">Próximos Eventos</div>
+          <button class="btn-gold" id="btnAddEvent" style="display:none;font-size:.7rem;padding:.4rem .8rem" onclick="openModal('eventModal')">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+        <div id="eventsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @media (max-width: 768px) {
+      #calendario .container-vg > div { grid-template-columns: 1fr !important; }
+    }
+  </style>
+</section>
+
+<!-- ════════════════════════════════════
+     SECÇÃO: LOGIN
+════════════════════════════════════ -->
+<section class="section" id="login">
+  <div style="min-height:calc(100vh - 64px); display:flex; align-items:center; justify-content:center; padding:2rem;">
+    <div class="form-vg" style="width:100%">
+      <div style="text-align:center;margin-bottom:1.5rem">
+        <div class="brand-emblem" style="margin:0 auto 1rem;width:55px;height:55px"></div>
+        <h2>Área dos Membros</h2>
+        <p class="subtitle">Entre com as suas credenciais de membro</p>
+      </div>
+      <div class="alert-vg" id="loginAlert"></div>
+      <div class="form-group">
+        <label class="form-label">E-mail</label>
+        <input type="email" class="form-control-vg" id="loginEmail" placeholder="o.seu@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Senha</label>
+        <input type="password" class="form-control-vg" id="loginPassword" placeholder="••••••••">
+      </div>
+      <button class="btn-gold w-100 mt-3" onclick="doLogin()">
+        <i class="fas fa-sign-in-alt"></i> Entrar
+      </button>
+      <div class="divider-text mt-3">ou</div>
+      <button class="btn-outline-gold w-100" onclick="navigate('registo')">
+        <i class="fas fa-user-plus"></i> Registar-me como Membro
+      </button>
+      <div class="mt-3" style="text-align:center">
+        <a href="#" onclick="navigate('admin-login');return false" style="color:var(--text-muted);font-size:.75rem;font-family:'Oswald';letter-spacing:.1em;text-decoration:none">
+          Acesso Administrativo <i class="fas fa-lock" style="font-size:.7rem"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     SECÇÃO: ADMIN LOGIN
+════════════════════════════════════ -->
+<section class="section" id="admin-login">
+  <div style="min-height:calc(100vh - 64px); display:flex; align-items:center; justify-content:center; padding:2rem;">
+    <div class="form-vg" style="width:100%;max-width:420px">
+      <div style="text-align:center;margin-bottom:1.5rem">
+        <i class="fas fa-shield-alt" style="font-size:2.5rem;color:var(--accent);margin-bottom:1rem"></i>
+        <h2>Administração</h2>
+        <p class="subtitle">Área restrita ao administrador</p>
+      </div>
+      <div class="alert-vg" id="adminLoginAlert"></div>
+      <div class="form-group">
+        <label class="form-label">Senha do Administrador</label>
+        <input type="password" class="form-control-vg" id="adminPassword" placeholder="••••••••">
+      </div>
+      <button class="btn-gold w-100 mt-3" onclick="doAdminLogin()">
+        <i class="fas fa-unlock"></i> Aceder
+      </button>
+      <div class="mt-3" style="text-align:center">
+        <a href="#" onclick="navigate('login');return false" style="color:var(--text-muted);font-size:.8rem;font-family:'Oswald';letter-spacing:.1em;text-decoration:none">
+          ← Voltar ao Login
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     SECÇÃO: REGISTO
+════════════════════════════════════ -->
+<section class="section" id="registo">
+  <div class="section-header">
+    <div class="section-label">&#9650; Adesão</div>
+    <h2 class="section-title">Registar-se como Membro</h2>
+    <div class="section-divider"></div>
+  </div>
+  <div class="container-vg">
+    <div class="form-vg" style="max-width:600px">
+      <div class="alert-vg" id="registoAlert"></div>
+
+      <!-- Step 1: Info pessoal -->
+      <div id="step1">
+        <h3 style="font-size:1.1rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.5rem;color:var(--accent)">
+          <span style="background:var(--accent);color:#000;padding:.2rem .5rem;border-radius:2px;margin-right:.5rem">1</span>
+          Informações Pessoais
+        </h3>
+        <div class="form-group">
+          <label class="form-label">Nome Completo</label>
+          <input type="text" class="form-control-vg" id="regNome" placeholder="O seu nome completo">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="form-group">
+            <label class="form-label">E-mail</label>
+            <input type="email" class="form-control-vg" id="regEmail" placeholder="email@exemplo.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Telefone</label>
+            <input type="tel" class="form-control-vg" id="regTelefone" placeholder="+258 84...">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Função / Cargo no Batalhão</label>
+          <select class="form-control-vg" id="regCargo">
+            <option value="">Seleccione...</option>
+            <option>Recruta</option>
+            <option>Soldado</option>
+            <option>Cabo</option>
+            <option>Sargento</option>
+            <option>Tenente</option>
+            <option>Capitão</option>
+            <option>Major</option>
+            <option>Comandante</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="form-group">
+            <label class="form-label">Senha</label>
+            <input type="password" class="form-control-vg" id="regSenha" placeholder="••••••••">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirmar Senha</label>
+            <input type="password" class="form-control-vg" id="regSenha2" placeholder="••••••••">
+          </div>
+        </div>
+
+        <div style="margin-top:1.5rem">
+          <h3 style="font-size:1.1rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.25rem;color:var(--accent)">
+            <span style="background:var(--accent);color:#000;padding:.2rem .5rem;border-radius:2px;margin-right:.5rem">2</span>
+            Contribuição de Adesão
+          </h3>
+          <div style="background:var(--bg-surface);border:1px solid var(--border-accent);padding:1rem;border-radius:4px;margin-bottom:1.25rem;">
+            <div style="font-family:'Oswald';font-size:.8rem;letter-spacing:.1em;color:var(--text-muted);text-transform:uppercase;margin-bottom:.5rem">Valor da Contribuição</div>
+            <div style="font-family:'Oswald';font-size:2rem;font-weight:700;color:var(--accent)">
+              <span id="valorContribuicao">500</span> <span style="font-size:1rem;color:var(--text-muted)">MZN</span>
+            </div>
+          </div>
+
+          <label class="form-label">Método de Pagamento</label>
+          <div class="payment-options">
+            <div class="payment-opt mpesa" onclick="selectPayment(this,'M-Pesa')">
+              <span class="pay-name">M-Pesa</span>
+              <span class="pay-op">Vodacom</span>
+            </div>
+            <div class="payment-opt emola" onclick="selectPayment(this,'e-Mola')">
+              <span class="pay-name">e-Mola</span>
+              <span class="pay-op">Movitel</span>
+            </div>
+            <div class="payment-opt mkesh" onclick="selectPayment(this,'Mkesh')">
+              <span class="pay-name">Mkesh</span>
+              <span class="pay-op">Mcel</span>
+            </div>
+          </div>
+
+          <div class="form-group mt-3" id="paymentDetails" style="display:none">
+            <div class="alert-vg alert-info show" id="paymentInfo" style="margin-bottom:1rem"></div>
+            <label class="form-label">Referência / Código da Transacção</label>
+            <input type="text" class="form-control-vg" id="regReferencia" placeholder="Ex: MP250423001234">
+            <div style="font-size:.8rem;color:var(--text-muted);margin-top:.4rem;font-family:'Oswald';letter-spacing:.05em">
+              Após o registo, a sua conta será analisada e activada pelo administrador.
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-gold w-100 mt-3" onclick="submitRegisto()">
+          <i class="fas fa-paper-plane"></i> Submeter Pedido de Adesão
+        </button>
+        <div class="mt-3" style="text-align:center">
+          <a href="#" onclick="navigate('login');return false" style="color:var(--text-muted);font-size:.8rem;font-family:'Oswald';letter-spacing:.1em;text-decoration:none">
+            Já tenho conta → Entrar
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     SECÇÃO: PERFIL DO MEMBRO
+════════════════════════════════════ -->
+<section class="section" id="perfil">
+  <div class="section-header">
+    <div class="section-label">&#9650; Área Pessoal</div>
+    <h2 class="section-title">Meu Perfil</h2>
+    <div class="section-divider"></div>
+  </div>
+  <div class="container-vg">
+    <div style="max-width:600px;margin:0 auto">
+      <div class="card-vg" style="padding:2rem;text-align:center">
+        <div class="avatar-placeholder" id="perfilAvatar" style="margin:0 auto 1.5rem;width:120px;height:120px;font-size:2.5rem"></div>
+        <h2 id="perfilNome" style="font-size:1.8rem;letter-spacing:.05em;text-transform:uppercase"></h2>
+        <div id="perfilCargo" class="member-role"></div>
+        <div class="member-badge mt-2">Membro Activo</div>
+        <div style="margin-top:2rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem;text-align:left">
+          <div>
+            <div class="form-label">E-mail</div>
+            <div id="perfilEmail" style="color:var(--text)"></div>
+          </div>
+          <div>
+            <div class="form-label">Telefone</div>
+            <div id="perfilTelefone" style="color:var(--text)"></div>
+          </div>
+          <div>
+            <div class="form-label">Membro Desde</div>
+            <div id="perfilSince" style="color:var(--text)"></div>
+          </div>
+          <div>
+            <div class="form-label">Contribuição</div>
+            <div style="color:#5cc78a;font-family:'Oswald'">Confirmada ✓</div>
+          </div>
+        </div>
+        <button class="btn-outline-gold mt-3 w-100" onclick="doLogout()">
+          <i class="fas fa-sign-out-alt"></i> Terminar Sessão
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════
+     SECÇÃO: ADMIN
+════════════════════════════════════ -->
+<section class="section" id="admin">
+  <div class="section-header">
+    <div class="section-label">&#9650; Gestão</div>
+    <h2 class="section-title">Painel de Administração</h2>
+    <div class="section-divider"></div>
+  </div>
+  <div class="container-vg">
+    <!-- Admin stats -->
+    <div class="stats-bar mb-4" id="adminStats"></div>
+
+    <!-- Tabs -->
+    <div class="tabs-vg">
+      <div class="tab-vg active" onclick="adminTab(this,'tab-pendentes')">Pedidos Pendentes <span id="pendingBadge"></span></div>
+      <div class="tab-vg" onclick="adminTab(this,'tab-membros')">Membros Aprovados</div>
+      <div class="tab-vg" onclick="adminTab(this,'tab-config')">Configurações</div>
+    </div>
+
+    <!-- Pendentes -->
+    <div class="tab-panel active" id="tab-pendentes">
+      <h3 style="font-size:1rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.5rem;color:var(--text-muted)">Pedidos aguardando aprovação</h3>
+      <div id="pendingList"></div>
+    </div>
+
+    <!-- Membros aprovados -->
+    <div class="tab-panel" id="tab-membros">
+      <h3 style="font-size:1rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.5rem;color:var(--text-muted)">Membros aprovados e activos</h3>
+      <div style="overflow-x:auto">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>E-mail</th>
+              <th>Cargo</th>
+              <th>Adesão</th>
+              <th>Estado</th>
+              <th>Acções</th>
+            </tr>
+          </thead>
+          <tbody id="membersTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Config -->
+    <div class="tab-panel" id="tab-config">
+      <div class="form-vg" style="max-width:500px">
+        <h3 style="font-size:1.2rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1.5rem">Configurações do Site</h3>
+        <div class="form-group">
+          <label class="form-label">Valor da Contribuição (MZN)</label>
+          <input type="number" class="form-control-vg" id="cfgValor" placeholder="500">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número M-Pesa</label>
+          <input type="text" class="form-control-vg" id="cfgMpesa" placeholder="+258 84 620 2730 ">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número e-Mola</label>
+          <input type="text" class="form-control-vg" id="cfgEmola" placeholder="+258 87 807 5318">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número Mkesh</label>
+          <input type="text" class="form-control-vg" id="cfgMkesh" placeholder="+258 82 581 5980">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Slogan / Descrição do Batalhão</label>
+          <textarea class="form-control-vg" id="cfgSlogan" rows="3"></textarea>
+        </div>
+        <button class="btn-gold w-100" onclick="saveConfig()"><i class="fas fa-save"></i> Guardar Configurações</button>
+
+        <div style="margin-top:2rem;border-top:1px solid var(--border);padding-top:2rem">
+          <div style="font-family:'Oswald';font-size:.9rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-red);margin-bottom:1rem">Alterar Senha Admin</div>
+          <div class="form-group">
+            <label class="form-label">Nova Senha</label>
+            <input type="password" class="form-control-vg" id="newAdminPw" placeholder="••••••••">
+          </div>
+          <button class="btn-outline-gold w-100" onclick="changeAdminPw()">Alterar Senha</button>
+        </div>
+
+        <div style="margin-top:1.5rem;text-align:center">
+          <button class="btn-sm-vg btn-reject" onclick="adminLogout()">Terminar Sessão Admin</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════ -->
+<script>
+// ══ DATA STORE ══
+const DB = {
+  get: k => { try { return JSON.parse(localStorage.getItem('bv_' + k)) } catch(e) { return null } },
+  set: (k, v) => localStorage.setItem('bv_' + k, JSON.stringify(v)),
+};
+
+// ══ INIT ══
+function initData() {
+  if (!DB.get('config')) {
+    DB.set('config', {
+      valor: 200,
+      mpesa: '+258 84 620 2730',
+      emola: '+258 87 807 5318',
+      mkesh: '+258 82 581 5980',
+      slogan: 'Unidade, disciplina e progresso são os pilares do Batalhão Vanguarda.',
+      adminPw: 'vanguarda2025',
+    });
+  }
+  if (!DB.get('members')) {
+    DB.set('members', [
+      { id: 1, nome: 'Comandante Félix', email: 'admin@vanguarda.mz', telefone: '+258 84 000 0001', cargo: 'Comandante', senha: 'admin123', aprovado: true, dataAdesao: '2025-01-15', payMethod: 'M-Pesa', referencia: 'MP001' },
+      { id: 2, nome: 'Capitão António Silva', email: 'antonio@vanguarda.mz', telefone: '+258 84 000 0002', cargo: 'Capitão', senha: 'membro123', aprovado: true, dataAdesao: '2025-02-10', payMethod: 'e-Mola', referencia: 'EM002' },
+      { id: 3, nome: 'Tenente Maria João', email: 'maria@vanguarda.mz', telefone: '+258 86 000 0003', cargo: 'Tenente', senha: 'membro123', aprovado: true, dataAdesao: '2025-03-05', payMethod: 'Mkesh', referencia: 'MK003' },
+      { id: 4, nome: 'Sargento Carlos Matos', email: 'carlos@vanguarda.mz', telefone: '+258 82 000 0004', cargo: 'Sargento', senha: 'membro123', aprovado: true, dataAdesao: '2025-04-01', payMethod: 'M-Pesa', referencia: 'MP004' },
+    ]);
+  }
+  if (!DB.get('pending')) DB.set('pending', []);
+  if (!DB.get('posts')) {
+    DB.set('posts', [
+      { id: 1, titulo: 'Bem-vindos ao Portal Oficial do Batalhão Vanguarda', conteudo: 'É com grande satisfação que inauguramos o nosso portal digital. Este espaço será o ponto de encontro de todos os membros do Batalhão Vanguarda — um lugar de comunicação, partilha e fortalecimento dos laços que nos unem.\n\nAqui poderão encontrar notícias sobre as nossas actividades, perfis dos camaradas, galeria de momentos memoráveis e o calendário de eventos. O portal está também equipado com uma área exclusiva para membros registados e que contribuíram para o fundo do batalhão.\n\nJuntos, somos mais fortes. Vanguarda sempre!', autor: 'Comandante Félix', data: '2025-04-15', imagem: '' },
+      { id: 2, titulo: 'Actividade de Formação — Abril 2025', conteudo: 'O Batalhão Vanguarda realizou no dia 10 de Abril uma sessão de formação intensiva com todos os efectivos presentes. A actividade contou com exercícios práticos de disciplina, liderança e trabalho em equipa.\n\nOs participantes demonstraram grande dedicação e espírito de corpo, tornando a sessão num momento inesquecível de crescimento colectivo. O próximo encontro está agendado para o mês de Maio.', autor: 'Capitão António Silva', data: '2025-04-12', imagem: '' },
+    ]);
+  }
+  if (!DB.get('events')) {
+    const y = new Date().getFullYear();
+    const m = String(new Date().getMonth() + 1).padStart(2, '0');
+    DB.set('events', [
+      { id: 1, titulo: 'Reunião Geral do Batalhão', data: `${y}-${m}-28`, descricao: 'Reunião mensal com todos os membros activos.' },
+      { id: 2, titulo: 'Formação — Liderança', data: `${y}-${m}-15`, descricao: 'Sessão de formação sobre técnicas de liderança.' },
+    ]);
+  }
+  if (!DB.get('gallery')) {
+    DB.set('gallery', [
+      { id: 1, url: '', caption: 'Formação Geral — Janeiro 2025' },
+      { id: 2, url: '', caption: 'Cerimónia de Adesão — Fevereiro 2025' },
+      { id: 3, url: '', caption: 'Actividade de Teambuilding' },
+    ]);
+  }
+  if (!DB.get('adminSession')) DB.set('adminSession', false);
+}
+
+// ══ NAVIGATION ══
+function navigate(section) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(section);
+  if (el) el.classList.add('active');
+
+  // Update nav active state
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    a.classList.toggle('active', a.dataset.section === section);
+  });
+
+  // Close menu on mobile
+  document.getElementById('navLinks').classList.remove('open');
+
+  // Render section
+  switch(section) {
+    case 'home': renderHome(); break;
+    case 'membros': renderMembros(); break;
+    case 'blog': renderBlog(); break;
+    case 'galeria': renderGaleria(); break;
+    case 'calendario': renderCalendario(); break;
+    case 'admin': renderAdmin(); break;
+    case 'perfil': renderPerfil(); break;
+  }
+
+  window.scrollTo(0, 0);
+}
+
+function toggleMenu() {
+  document.getElementById('navLinks').classList.toggle('open');
+}
+
+// ══ AUTH ══
+const Auth = {
+  login(email, senha) {
+    const members = DB.get('members') || [];
+    return members.find(m => m.email === email && m.senha === senha && m.aprovado);
+  },
+  currentUser() {
+    return DB.get('session');
+  },
+  setSession(user) {
+    DB.set('session', user);
+    updateNav();
+  },
+  logout() {
+    DB.set('session', null);
+    updateNav();
+  },
+  isLoggedIn() {
+    return !!DB.get('session');
+  }
+};
+
+function updateNav() {
+  const user = Auth.currentUser();
+  const isAdmin = DB.get('adminSession');
+  const btn = document.getElementById('navAuthBtn');
+  const adminLink = document.getElementById('navAdminLink');
+
+  if (isAdmin) {
+    btn.innerHTML = '<i class="fas fa-shield-alt"></i> Admin';
+    btn.onclick = () => navigate('admin');
+    adminLink.style.display = '';
+  } else if (user) {
+    btn.innerHTML = `<i class="fas fa-user"></i> ${user.nome.split(' ')[0]}`;
+    btn.onclick = () => navigate('perfil');
+    adminLink.style.display = 'none';
+  } else {
+    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+    btn.onclick = handleNavAuth;
+    adminLink.style.display = 'none';
+  }
+
+  // Show/hide post and photo buttons
+  const canPost = user || isAdmin;
+  const addPostBtn = document.getElementById('btnNewPost');
+  const addPhotoBtn = document.getElementById('btnAddPhoto');
+  const addEventBtn = document.getElementById('btnAddEvent');
+  if (addPostBtn) addPostBtn.style.display = canPost ? '' : 'none';
+  if (addPhotoBtn) addPhotoBtn.style.display = canPost ? '' : 'none';
+  if (addEventBtn) addEventBtn.style.display = isAdmin ? '' : 'none';
+}
+
+function handleNavAuth() {
+  if (Auth.isLoggedIn()) navigate('perfil');
+  else navigate('login');
+}
+
+function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const senha = document.getElementById('loginPassword').value;
+  const alert = document.getElementById('loginAlert');
+
+  if (!email || !senha) {
+    showAlert(alert, 'danger', 'Preencha todos os campos.');
+    return;
+  }
+
+  const user = Auth.login(email, senha);
+  if (user) {
+    Auth.setSession(user);
+    showToast('Bem-vindo, ' + user.nome.split(' ')[0] + '!');
+    navigate('perfil');
+  } else {
+    showAlert(alert, 'danger', 'Credenciais inválidas ou conta não aprovada.');
+  }
+}
+
+function doLogout() {
+  Auth.logout();
+  showToast('Sessão terminada.');
+  navigate('home');
+}
+
+function doAdminLogin() {
+  const pw = document.getElementById('adminPassword').value;
+  const cfg = DB.get('config');
+  const alert = document.getElementById('adminLoginAlert');
+  if (pw === cfg.adminPw) {
+    DB.set('adminSession', true);
+    updateNav();
+    showToast('Acesso administrativo concedido.');
+    navigate('admin');
+  } else {
+    showAlert(alert, 'danger', 'Senha incorrecta.');
+  }
+}
+
+function adminLogout() {
+  DB.set('adminSession', false);
+  updateNav();
+  showToast('Sessão administrativa terminada.');
+  navigate('home');
+}
+
+// ══ REGISTO ══
+let selectedPayment = '';
+
+function selectPayment(el, method) {
+  document.querySelectorAll('.payment-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedPayment = method;
+
+  const cfg = DB.get('config');
+  const info = document.getElementById('paymentInfo');
+  const details = document.getElementById('paymentDetails');
+  const numeros = { 'M-Pesa': cfg.mpesa, 'e-Mola': cfg.emola, 'Mkesh': cfg.mkesh };
+  info.textContent = `Transfira ${cfg.valor} MZN via ${method} para o número: ${numeros[method]}. Em seguida, insira o código da transacção abaixo.`;
+  details.style.display = '';
+}
+
+function submitRegisto() {
+  const nome = document.getElementById('regNome').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const tel = document.getElementById('regTelefone').value.trim();
+  const cargo = document.getElementById('regCargo').value;
+  const senha = document.getElementById('regSenha').value;
+  const senha2 = document.getElementById('regSenha2').value;
+  const ref = document.getElementById('regReferencia').value.trim();
+  const alert = document.getElementById('registoAlert');
+
+  if (!nome || !email || !tel || !cargo || !senha) {
+    showAlert(alert, 'danger', 'Preencha todos os campos obrigatórios.'); return;
+  }
+  if (senha !== senha2) {
+    showAlert(alert, 'danger', 'As senhas não coincidem.'); return;
+  }
+  if (!selectedPayment) {
+    showAlert(alert, 'danger', 'Seleccione o método de pagamento.'); return;
+  }
+  if (!ref) {
+    showAlert(alert, 'danger', 'Insira a referência da transacção.'); return;
+  }
+
+  const members = DB.get('members') || [];
+  const pending = DB.get('pending') || [];
+  if (members.find(m => m.email === email) || pending.find(p => p.email === email)) {
+    showAlert(alert, 'danger', 'Este e-mail já está registado.'); return;
+  }
+
+  const req = {
+    id: Date.now(),
+    nome, email, telefone: tel, cargo, senha,
+    payMethod: selectedPayment, referencia: ref,
+    dataSubmissao: new Date().toISOString().split('T')[0],
+    estado: 'pendente'
+  };
+
+  pending.push(req);
+  DB.set('pending', pending);
+
+  showAlert(alert, 'success', 'Pedido enviado com sucesso! O administrador irá analisar a sua contribuição e activar a sua conta em breve.');
+
+  // Reset form
+  ['regNome','regEmail','regTelefone','regSenha','regSenha2','regReferencia'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('regCargo').value = '';
+  document.querySelectorAll('.payment-opt').forEach(o => o.classList.remove('selected'));
+  document.getElementById('paymentDetails').style.display = 'none';
+  selectedPayment = '';
+}
+
+// ══ HOME ══
+function renderHome() {
+  const members = DB.get('members') || [];
+  const posts = DB.get('posts') || [];
+  const events = DB.get('events') || [];
+  const pending = DB.get('pending') || [];
+  const approved = members.filter(m => m.aprovado);
+
+  // Stats
+  const stats = [
+    { num: approved.length, label: 'Membros Activos' },
+    { num: posts.length, label: 'Publicações' },
+    { num: events.length, label: 'Eventos' },
+    { num: pending.length, label: 'Pedidos Pendentes' },
+  ];
+  document.getElementById('homeStats').innerHTML = stats.map(s =>
+    `<div class="stat-item"><div class="stat-num">${s.num}</div><div class="stat-label">${s.label}</div></div>`
+  ).join('');
+
+  // Latest posts (2)
+  const latestPosts = posts.slice().reverse().slice(0, 2);
+  document.getElementById('homeLatestPosts').innerHTML = latestPosts.length
+    ? latestPosts.map(p => renderBlogCard(p)).join('')
+    : '<div class="empty-state"><i class="fas fa-newspaper"></i><br>Sem publicações ainda.</div>';
+
+  // Upcoming events
+  const today = new Date().toISOString().split('T')[0];
+  const upcoming = events.filter(e => e.data >= today).sort((a,b) => a.data.localeCompare(b.data)).slice(0, 3);
+  document.getElementById('homeUpcomingEvents').innerHTML = upcoming.length
+    ? upcoming.map(e => `
+      <div class="event-item">
+        <div class="event-date"><i class="fas fa-calendar-alt"></i> ${formatDate(e.data)}</div>
+        <div class="event-title">${e.titulo}</div>
+        ${e.descricao ? `<div style="color:var(--text-muted);font-size:.9rem;margin-top:.3rem">${e.descricao}</div>` : ''}
+      </div>`).join('')
+    : '<div class="empty-state"><i class="fas fa-calendar"></i><br>Sem eventos próximos.</div>';
+}
+
+// ══ MEMBROS ══
+function renderMembros() {
+  const members = (DB.get('members') || []).filter(m => m.aprovado);
+  const grid = document.getElementById('membrosGrid');
+  grid.innerHTML = members.length
+    ? members.map(m => `
+      <div class="member-card">
+        <div class="avatar-placeholder">${initials(m.nome)}</div>
+        <div class="member-role">${m.cargo}</div>
+        <div class="member-name">${m.nome}</div>
+        <div style="margin-top:.5rem"><span class="member-badge">Membro Activo</span></div>
+      </div>`).join('')
+    : '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-users"></i><br>Sem membros ainda.</div>';
+}
+
+// ══ BLOG ══
+function renderBlogCard(p) {
+  const icon = '📰';
+  return `<div class="blog-card" onclick="openPost(${p.id})">
+    <div class="blog-card-img">
+      ${p.imagem ? `<img src="${p.imagem}" alt="" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-newspaper\\'></i>'">` : '<i class="fas fa-newspaper"></i>'}
+    </div>
+    <div class="blog-card-body">
+      <div class="blog-meta"><span>${p.autor}</span> ${formatDate(p.data)}</div>
+      <div class="blog-title">${p.titulo}</div>
+      <div class="blog-excerpt">${p.conteudo.substring(0,140)}...</div>
+    </div>
+  </div>`;
+}
+
+function renderBlog() {
+  const posts = (DB.get('posts') || []).slice().reverse();
+  document.getElementById('blogCount').textContent = posts.length + ' publicação(ões)';
+  document.getElementById('blogList').innerHTML = posts.length
+    ? posts.map(p => renderBlogCard(p)).join('')
+    : '<div class="empty-state"><i class="fas fa-newspaper"></i><br>Sem publicações ainda.</div>';
+  updateNav();
+}
+
+function openPost(id) {
+  const posts = DB.get('posts') || [];
+  const p = posts.find(x => x.id === id);
+  if (!p) return;
+  const isAdmin = DB.get('adminSession');
+  const isLoggedIn = Auth.isLoggedIn();
+  document.getElementById('postModalContent').innerHTML = `
+    <div style="font-family:'Oswald';font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.75rem">
+      <span style="color:var(--accent)">${p.autor}</span> &mdash; ${formatDate(p.data)}
+    </div>
+    <h2 style="font-size:1.8rem;letter-spacing:.05em;text-transform:uppercase;margin-bottom:1.5rem;color:var(--text)">${p.titulo}</h2>
+    ${p.imagem ? `<img src="${p.imagem}" alt="" style="width:100%;max-height:300px;object-fit:cover;border-radius:4px;margin-bottom:1.5rem;border:1px solid var(--border)" onerror="this.remove()">` : ''}
+    <div style="color:var(--text);line-height:1.8">${p.conteudo.replace(/\n/g,'<br>')}</div>
+    ${(isAdmin || isLoggedIn) ? `<div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1rem;display:flex;gap:.5rem">
+      ${isAdmin ? `<button class="btn-sm-vg btn-reject" onclick="deletePost(${p.id})"><i class="fas fa-trash"></i> Eliminar</button>` : ''}
+    </div>` : ''}
+  `;
+  openModal('postModal');
+}
+
+function savePost() {
+  const titulo = document.getElementById('postTitle').value.trim();
+  const imagem = document.getElementById('postImage').value.trim();
+  const conteudo = document.getElementById('postContent').value.trim();
+  if (!titulo || !conteudo) { showToast('Preencha título e conteúdo.'); return; }
+
+  const user = Auth.currentUser();
+  const isAdmin = DB.get('adminSession');
+  const autor = isAdmin ? 'Administrador' : (user ? user.nome : 'Membro');
+
+  const posts = DB.get('posts') || [];
+  posts.push({ id: Date.now(), titulo, imagem, conteudo, autor, data: new Date().toISOString().split('T')[0] });
+  DB.set('posts', posts);
+
+  closeModal('newPostModal');
+  document.getElementById('postTitle').value = '';
+  document.getElementById('postImage').value = '';
+  document.getElementById('postContent').value = '';
+  renderBlog();
+  showToast('Publicação criada com sucesso!');
+}
+
+function deletePost(id) {
+  let posts = DB.get('posts') || [];
+  DB.set('posts', posts.filter(p => p.id !== id));
+  closeModal('postModal');
+  renderBlog();
+  showToast('Publicação eliminada.');
+}
+
+// ══ GALERIA ══
+function renderGaleria() {
+  const gallery = DB.get('gallery') || [];
+  document.getElementById('galleryCount').textContent = gallery.length + ' foto(s)';
+  const grid = document.getElementById('galleryGrid');
+  grid.innerHTML = gallery.map((g,i) => `
+    <div class="gallery-item" onclick="${g.url ? `openLightbox('${g.url}','${g.caption}')` : ''}">
+      ${g.url
+        ? `<img src="${g.url}" alt="${g.caption}" onerror="this.parentElement.querySelector('.gallery-placeholder').style.display='flex';this.remove()">`
+        : ''}
+      <div class="gallery-placeholder" style="${g.url ? 'display:none' : ''}">
+        <i class="fas fa-image" style="font-size:2rem"></i>
+        <span>${g.caption || 'Foto'}</span>
+      </div>
+      ${g.url ? '<div class="gallery-overlay"><i class="fas fa-expand"></i></div>' : ''}
+      ${DB.get('adminSession') ? `<button onclick="event.stopPropagation();deleteGalleryItem(${g.id})" style="position:absolute;top:.5rem;right:.5rem;background:rgba(0,0,0,.7);border:none;color:#e07070;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:.75rem"><i class="fas fa-times"></i></button>` : ''}
+    </div>`).join('') ||
+    '<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-images"></i><br>Galeria vazia.</div>';
+  updateNav();
+}
+
+function openLightbox(url, caption) {
+  document.getElementById('lightboxImg').src = url;
+  document.getElementById('lightboxCaption').textContent = caption;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+
+function saveGalleryItem() {
+  const url = document.getElementById('galleryUrl').value.trim();
+  const caption = document.getElementById('galleryCaption').value.trim();
+  const gallery = DB.get('gallery') || [];
+  gallery.push({ id: Date.now(), url, caption });
+  DB.set('gallery', gallery);
+  closeModal('addGalleryModal');
+  document.getElementById('galleryUrl').value = '';
+  document.getElementById('galleryCaption').value = '';
+  renderGaleria();
+  showToast('Foto adicionada!');
+}
+
+function deleteGalleryItem(id) {
+  let g = DB.get('gallery') || [];
+  DB.set('gallery', g.filter(x => x.id !== id));
+  renderGaleria();
+  showToast('Foto removida.');
+}
+
+// ══ CALENDÁRIO ══
+let calDate = new Date();
+
+function renderCalendario() {
+  renderCalMonth();
+  renderEventsList();
+  updateNav();
+}
+
+function renderCalMonth() {
+  const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('calMonthLabel').textContent = months[calDate.getMonth()] + ' ' + calDate.getFullYear();
+
+  const events = DB.get('events') || [];
+  const y = calDate.getFullYear(), m = calDate.getMonth();
+  const first = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const today = new Date();
+
+  let html = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(d => `<div class="cal-day-name">${d}</div>`).join('');
+
+  // Blanks before
+  for (let i = 0; i < first; i++) {
+    html += `<div class="cal-day other-month"></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayEvents = events.filter(e => e.data === dateStr);
+    const isToday = today.getFullYear()===y && today.getMonth()===m && today.getDate()===d;
+    html += `<div class="cal-day${isToday?' today':''}">
+      <div class="cal-day-num">${d}</div>
+      ${dayEvents.map(e => `<div class="cal-event">${e.titulo}</div>`).join('')}
+    </div>`;
+  }
+
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+function changeMonth(dir) {
+  calDate.setMonth(calDate.getMonth() + dir);
+  renderCalMonth();
+}
+
+function renderEventsList() {
+  const events = (DB.get('events') || []).sort((a,b) => a.data.localeCompare(b.data));
+  document.getElementById('eventsList').innerHTML = events.length
+    ? events.map(e => `
+      <div class="event-item">
+        <div class="event-date"><i class="fas fa-calendar-alt"></i> ${formatDate(e.data)}</div>
+        <div class="event-title">${e.titulo}</div>
+        ${e.descricao ? `<div style="color:var(--text-muted);font-size:.85rem;margin-top:.3rem">${e.descricao}</div>` : ''}
+        ${DB.get('adminSession') ? `<button class="btn-sm-vg btn-reject mt-2" onclick="deleteEvent(${e.id})"><i class="fas fa-trash"></i></button>` : ''}
+      </div>`).join('')
+    : '<div class="empty-state"><i class="fas fa-calendar"></i><br>Sem eventos.</div>';
+}
+
+function saveEvent() {
+  const titulo = document.getElementById('eventTitle').value.trim();
+  const data = document.getElementById('eventDate').value;
+  const descricao = document.getElementById('eventDesc').value.trim();
+  if (!titulo || !data) { showToast('Título e data são obrigatórios.'); return; }
+
+  const events = DB.get('events') || [];
+  events.push({ id: Date.now(), titulo, data, descricao });
+  DB.set('events', events);
+
+  closeModal('eventModal');
+  document.getElementById('eventTitle').value = '';
+  document.getElementById('eventDate').value = '';
+  document.getElementById('eventDesc').value = '';
+  renderEventsList();
+  showToast('Evento adicionado!');
+}
+
+function deleteEvent(id) {
+  DB.set('events', (DB.get('events')||[]).filter(e => e.id !== id));
+  renderEventsList();
+  renderCalMonth();
+  showToast('Evento removido.');
+}
+
+// ══ PERFIL ══
+function renderPerfil() {
+  const user = Auth.currentUser();
+  if (!user) { navigate('login'); return; }
+  document.getElementById('perfilAvatar').textContent = initials(user.nome);
+  document.getElementById('perfilNome').textContent = user.nome;
+  document.getElementById('perfilCargo').textContent = user.cargo;
+  document.getElementById('perfilEmail').textContent = user.email;
+  document.getElementById('perfilTelefone').textContent = user.telefone || '—';
+  document.getElementById('perfilSince').textContent = formatDate(user.dataAdesao || '2025-01-01');
+}
+
+// ══ ADMIN ══
+function renderAdmin() {
+  if (!DB.get('adminSession')) { navigate('admin-login'); return; }
+
+  const members = (DB.get('members') || []).filter(m => m.aprovado);
+  const pending = DB.get('pending') || [];
+  const posts = DB.get('posts') || [];
+  const events = DB.get('events') || [];
+  const cfg = DB.get('config');
+
+  // Stats
+  document.getElementById('adminStats').innerHTML = [
+    { num: members.length, label: 'Membros Activos' },
+    { num: pending.length, label: 'Pedidos Pendentes' },
+    { num: posts.length, label: 'Publicações' },
+    { num: events.length, label: 'Eventos' },
+  ].map(s => `<div class="stat-item"><div class="stat-num">${s.num}</div><div class="stat-label">${s.label}</div></div>`).join('');
+
+  // Pending badge
+  document.getElementById('pendingBadge').innerHTML = pending.length
+    ? `<span style="background:var(--accent);color:#000;border-radius:50%;padding:.1rem .45rem;font-size:.7rem;margin-left:.4rem">${pending.length}</span>`
+    : '';
+
+  // Pending list
+  document.getElementById('pendingList').innerHTML = pending.length
+    ? pending.map(p => `
+      <div class="card-vg" style="padding:1.25rem;margin-bottom:1rem">
+        <div style="display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:start">
+          <div>
+            <div style="font-family:'Oswald';font-size:1.1rem;color:var(--text)">${p.nome}</div>
+            <div style="color:var(--text-muted);font-size:.85rem">${p.email} &bull; ${p.telefone}</div>
+            <div style="margin-top:.5rem;font-family:'Oswald';font-size:.75rem;letter-spacing:.1em">
+              <span class="badge-pending">${p.cargo}</span>
+              <span style="margin-left:.5rem;color:var(--text-muted)">${p.payMethod}</span>
+              <span style="margin-left:.5rem;color:var(--accent)">Ref: ${p.referencia}</span>
+            </div>
+            <div style="color:var(--text-muted);font-size:.75rem;margin-top:.25rem;font-family:'Oswald';letter-spacing:.05em">Submetido em ${formatDate(p.dataSubmissao)}</div>
+          </div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <button class="btn-sm-vg btn-approve" onclick="approveRequest(${p.id})"><i class="fas fa-check"></i> Aprovar</button>
+            <button class="btn-sm-vg btn-reject" onclick="rejectRequest(${p.id})"><i class="fas fa-times"></i> Rejeitar</button>
+          </div>
+        </div>
+      </div>`).join('')
+    : '<div class="empty-state"><i class="fas fa-inbox"></i><br>Sem pedidos pendentes.</div>';
+
+  // Members table
+  document.getElementById('membersTable').innerHTML = members.map(m => `
+    <tr>
+      <td style="color:var(--text)">${m.nome}</td>
+      <td>${m.email}</td>
+      <td><span class="badge-approved">${m.cargo}</span></td>
+      <td>${m.payMethod || '—'}</td>
+      <td><span class="badge-approved">Aprovado</span></td>
+      <td>
+        ${m.id !== 1 ? `<button class="btn-sm-vg btn-delete" onclick="removeMember(${m.id})"><i class="fas fa-trash"></i></button>` : '<span style="color:var(--text-muted);font-size:.75rem">Admin</span>'}
+      </td>
+    </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted)">Sem membros aprovados.</td></tr>';
+
+  // Config
+  document.getElementById('cfgValor').value = cfg.valor;
+  document.getElementById('cfgMpesa').value = cfg.mpesa;
+  document.getElementById('cfgEmola').value = cfg.emola;
+  document.getElementById('cfgMkesh').value = cfg.mkesh;
+  document.getElementById('cfgSlogan').value = cfg.slogan;
+
+  updateNav();
+}
+
+function approveRequest(id) {
+  let pending = DB.get('pending') || [];
+  const req = pending.find(p => p.id === id);
+  if (!req) return;
+
+  const members = DB.get('members') || [];
+  members.push({
+    id: Date.now(),
+    nome: req.nome, email: req.email,
+    telefone: req.telefone, cargo: req.cargo,
+    senha: req.senha, aprovado: true,
+    dataAdesao: new Date().toISOString().split('T')[0],
+    payMethod: req.payMethod, referencia: req.referencia
+  });
+  DB.set('members', members);
+  DB.set('pending', pending.filter(p => p.id !== id));
+  renderAdmin();
+  showToast(`${req.nome} aprovado com sucesso!`);
+}
+
+function rejectRequest(id) {
+  let pending = DB.get('pending') || [];
+  const req = pending.find(p => p.id === id);
+  DB.set('pending', pending.filter(p => p.id !== id));
+  renderAdmin();
+  showToast(req ? `Pedido de ${req.nome} rejeitado.` : 'Pedido removido.');
+}
+
+function removeMember(id) {
+  if (!confirm('Tem a certeza que pretende remover este membro?')) return;
+  DB.set('members', (DB.get('members')||[]).filter(m => m.id !== id));
+  renderAdmin();
+  showToast('Membro removido.');
+}
+
+function saveConfig() {
+  const cfg = DB.get('config');
+  cfg.valor = parseInt(document.getElementById('cfgValor').value) || 500;
+  cfg.mpesa = document.getElementById('cfgMpesa').value;
+  cfg.emola = document.getElementById('cfgEmola').value;
+  cfg.mkesh = document.getElementById('cfgMkesh').value;
+  cfg.slogan = document.getElementById('cfgSlogan').value;
+  DB.set('config', cfg);
+
+  // Update valor on registo page
+  const valEl = document.getElementById('valorContribuicao');
+  if (valEl) valEl.textContent = cfg.valor;
+
+  showToast('Configurações guardadas!');
+}
+
+function changeAdminPw() {
+  const pw = document.getElementById('newAdminPw').value;
+  if (!pw || pw.length < 6) { showToast('A senha deve ter pelo menos 6 caracteres.'); return; }
+  const cfg = DB.get('config');
+  cfg.adminPw = pw;
+  DB.set('config', cfg);
+  document.getElementById('newAdminPw').value = '';
+  showToast('Senha alterada com sucesso!');
+}
+
+function adminTab(el, panelId) {
+  document.querySelectorAll('.tab-vg').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+}
+
+// ══ MODALS ══
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close modal on backdrop click
+document.querySelectorAll('.modal-vg').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ══ UTILITIES ══
+function initials(name) {
+  return name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
+}
+
+function formatDate(str) {
+  if (!str) return '—';
+  const [y,m,d] = str.split('-');
+  const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return `${d} ${months[parseInt(m)-1]} ${y}`;
+}
+
+function showAlert(el, type, msg) {
+  el.className = `alert-vg alert-${type} show`;
+  el.textContent = msg;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Update valor on registo page from config
+function updateRegistoValor() {
+  const cfg = DB.get('config');
+  const el = document.getElementById('valorContribuicao');
+  if (el && cfg) el.textContent = cfg.valor;
+}
+
+// ══ KEYBOARD ══
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-vg.open, .lightbox.open').forEach(m => m.classList.remove('open'));
+  }
+});
+
+// ══ BOOT ══
+initData();
+updateNav();
+renderHome();
+updateRegistoValor();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
